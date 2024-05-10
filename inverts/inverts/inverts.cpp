@@ -12,26 +12,34 @@
 // Глушков Олег ПС-21
 
 
-
-
-
 #include <iostream>
 #include <vector>
 #include <fstream>
 
-void countInversions(const std::vector<int>& permutation, std::vector<int>& inversions, int n) 
-{
-    //int n = permutation.size();
-    for (int i = n - 1 ; i >= 0; --i) 
-    {
-        for (int j = i - 1; j >= 0; --j) 
-        {
-            if (permutation[j] > permutation[i]) 
-            {
-                //std::cout << permutation[i] << ">" << permutation[j] << std::endl;
-                inversions[i]++;
-            }
-        }
+
+void Update(std::vector<int>& tree, int index, int delta) {
+    while (index < tree.size()) {
+        tree[index] += delta;
+        index += index & -index;
+    }
+}
+
+int Query(const std::vector<int>& tree, int index) { // Считаем количество элементов, меньших, чем текущий элемент
+    int sum = 0;
+    while (index > 0) {
+        sum += tree[index];
+        index -= index & -index;
+    }
+    return sum;
+}
+
+void СountInversions(const std::vector<int>& permutation, std::vector<int>& inversions) {
+    int n = permutation.size();
+    std::vector<int> tree(n + 1, 0);
+
+    for (int i = 0; i < n; ++i) {
+        inversions[i] = Query(tree, n) - Query(tree, permutation[i]); 
+        Update(tree, permutation[i], 1);
     }
 }
 
@@ -48,7 +56,8 @@ int main() {
     }
 
     std::vector<int> inversions(N, 0);
-    countInversions(permutation, inversions, N);
+
+    СountInversions(permutation, inversions);
 
     int totalInversions = 0;
     for (int i = 0; i < N; ++i) 
@@ -56,12 +65,12 @@ int main() {
         totalInversions += inversions[i];
     }
 
-    std::ofstream output("outout.txt");
+    std::ofstream output("output.txt");
 
-    std::cout << totalInversions << std::endl;
+	output << totalInversions << std::endl;
     for (int inv : inversions)
     {
-        std::cout << inv << " ";
+        output << inv << " ";
     }
 
     return 0;
